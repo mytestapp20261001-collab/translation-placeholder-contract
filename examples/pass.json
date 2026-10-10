@@ -1,0 +1,12 @@
+{
+  "source": {
+    "greeting": "Hello {name}!",
+    "count": "{0} items; {{literal}}"
+  },
+  "translations": {
+    "fr": {
+      "greeting": "Bonjour {name} !",
+      "count": "{0} articles ; {{texte}}"
+    }
+  }
+}
