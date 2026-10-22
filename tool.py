@@ -1,5 +1,8 @@
 #!/usr/bin/env python3
-"""Offline, bounded contract audit. Python 3.12 standard library only."""
+"""Offline contract audit. Python 3.12 standard library only.
+
+At most 10,000 findings; larger reports are rejected, never truncated.
+"""
 import argparse
 import json
 import math
@@ -8,6 +11,7 @@ from pathlib import Path
 
 MAX_BYTES = 2 * 1024 * 1024
 MAX_ITEMS = 10000
+MAX_FINDINGS = 10000
 class BadInput(ValueError):
     pass
 class Parser(argparse.ArgumentParser):
@@ -107,22 +111,29 @@ def audit(data):
     require(all(isinstance(k, str) and 0 < len(k) <= 1024 for k in source), "source keys must be bounded strings")
     expected = {key: placeholders(value) for key, value in source.items()}
     findings, total = [], len(source)
-    def key_id(key):
-        return hashlib.sha256(key.encode()).hexdigest()
+    def add_finding(code, locale_index, key, **details):
+        # Bound the complete report, not only input map entries: each source key
+        # can produce a finding in every locale. Never return a partial audit.
+        require(len(findings) < MAX_FINDINGS, "finding budget exceeded (10000)")
+        findings.append(finding(code, locale_index=locale_index,
+                                key_sha256=hashlib.sha256(key.encode()).hexdigest(),
+                                **details))
     for locale_index, (locale, values) in enumerate(translations.items()):
         require(isinstance(locale, str) and locale and isinstance(values, dict), "locale names need flat object maps")
         total += len(values); require(total <= 50000, "translation entry budget exceeded")
         require(all(isinstance(k, str) and 0 < len(k) <= 1024 for k in values), "translation keys must be bounded strings")
         actual = {key: placeholders(value) for key, value in values.items()}
         for key in sorted(source.keys() - values.keys()):
-            findings.append(finding("missing_translation", locale_index=locale_index, key_sha256=key_id(key)))
+            add_finding("missing_translation", locale_index, key)
         for key in sorted(values.keys() - source.keys()):
-            findings.append(finding("extra_translation_key", locale_index=locale_index, key_sha256=key_id(key)))
+            add_finding("extra_translation_key", locale_index, key)
         for key in sorted(source.keys() & values.keys()):
             if source[key] and not values[key]:
-                findings.append(finding("empty_translation", locale_index=locale_index, key_sha256=key_id(key)))
+                add_finding("empty_translation", locale_index, key)
             if expected[key] != actual[key]:
-                findings.append(finding("placeholder_mismatch", locale_index=locale_index, key_sha256=key_id(key), source_fields=sum(expected[key].values()), translation_fields=sum(actual[key].values())))
+                add_finding("placeholder_mismatch", locale_index, key,
+                            source_fields=sum(expected[key].values()),
+                            translation_fields=sum(actual[key].values()))
     return report(findings, source_keys=len(source), locales=len(translations), entries=total)
 
 def configure(parser):

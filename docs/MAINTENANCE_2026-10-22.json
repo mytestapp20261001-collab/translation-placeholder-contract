@@ -1,0 +1,22 @@
+{
+  "schema_version": 1,
+  "repository": "mytestapp20261001-collab/translation-placeholder-contract",
+  "repository_id": 1413304214,
+  "base_commit": "7d26d4b81bcc9862eb804e8f2a043ba5409234d7",
+  "date": "2026-10-22",
+  "scope": "Authorized maintenance. Original MIGRATION.json, historical hashes, README, SKILL, optional guide and experiment group remain unchanged.",
+  "changes": [
+    {
+      "path": "test_tool.py",
+      "original_sha256": "df1220cd01032cf249417860cc28ca929b54d67da114feff9d5524fa51d6b840",
+      "current_sha256": "42508442b7d7c311d836186832e44b3dd93cddfe25e1428b32fe437c11876251",
+      "reason": "Exact/over-limit, all-category, CLI privacy and maintenance-receipt regression coverage."
+    },
+    {
+      "path": "tool.py",
+      "original_sha256": "eae0c2c78408353a0343dec76dcbe5e168bdaf9c6e1f87296dff4e8089b3eaca",
+      "current_sha256": "5751458df0881e92b4be4f984505a8c2ae38f6cd1ffffa424eb73981f11a6fbc",
+      "reason": "Bound aggregate diagnostics across locales; reject oversized reports without partial success."
+    }
+  ]
+}
